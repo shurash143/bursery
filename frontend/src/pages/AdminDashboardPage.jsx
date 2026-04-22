@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import API from "../api/axiosConfig";
+
 import LeadersManager from "./LeadersManager";
 import DisbursementsManager from "./DisbursementsManager";
 import ContactsManager from "./ContactsManager";
@@ -47,7 +48,6 @@ export default function AdminDashboardPage() {
     fetchData();
   }, [fetchData]);
 
-  // SAFE STATS
   const stats = {
     totalApps: disbursements?.length || 0,
     totalDisbursed: (disbursements || [])
@@ -58,12 +58,10 @@ export default function AdminDashboardPage() {
     inquiryCount: contacts?.length || 0
   };
 
-  // ✅ CLEAN LOGOUT
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("role");
-
     navigate("/login", { replace: true });
   };
 
@@ -87,11 +85,10 @@ export default function AdminDashboardPage() {
           <NavBtn label="Inquiries" icon={<MessageSquare size={18} />} active={activeTab === "contacts"} onClick={() => setActiveTab("contacts")} count={stats.inquiryCount} />
         </nav>
 
-        {/* LOGOUT */}
         <div className="p-8">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-slate-800 hover:bg-rose-500 transition-all font-bold text-sm text-white"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-slate-800 hover:bg-rose-500 transition font-bold text-sm text-white"
           >
             <LogOut size={18} /> Logout
           </button>
@@ -129,7 +126,7 @@ export default function AdminDashboardPage() {
 const NavBtn = ({ label, icon, active, onClick, count }) => (
   <button
     onClick={onClick}
-    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all font-semibold text-sm ${
+    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition font-semibold text-sm ${
       active ? "bg-blue-600 text-white" : "hover:bg-slate-800 text-slate-400"
     }`}
   >
@@ -151,18 +148,50 @@ const OverviewPanel = ({ stats }) => (
 
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
-      <StatCard label="Total Apps" value={stats.totalApps} />
-      <StatCard label="Disbursed (KES)" value={stats.totalDisbursed.toLocaleString()} />
-      <StatCard label="Leaders" value={stats.leadersCount} />
-      <StatCard label="Inquiries" value={stats.inquiryCount} />
+      <StatCard label="Total Apps" value={stats.totalApps} icon={Users} color="blue" />
+      <StatCard label="Disbursed (KES)" value={stats.totalDisbursed.toLocaleString()} icon={BadgeDollarSign} color="emerald" />
+      <StatCard label="Leaders" value={stats.leadersCount} icon={ArrowUpRight} color="indigo" />
+      <StatCard label="Inquiries" value={stats.inquiryCount} icon={MessageSquare} color="amber" />
 
     </div>
   </div>
 );
 
-const StatCard = ({ label, value }) => (
-  <div className="p-6 bg-slate-50 rounded-2xl border">
-    <p className="text-xs font-bold uppercase text-slate-500">{label}</p>
-    <p className="text-2xl font-black text-slate-900">{value}</p>
-  </div>
-);
+/* STAT CARD (IMPROVED) */
+const StatCard = ({ label, value, color = "blue", icon: Icon }) => {
+  const colors = {
+    blue: "bg-blue-50 text-blue-600 border-blue-100",
+    emerald: "bg-emerald-50 text-emerald-600 border-emerald-100",
+    amber: "bg-amber-50 text-amber-600 border-amber-100",
+    indigo: "bg-indigo-50 text-indigo-600 border-indigo-100",
+  };
+
+  return (
+    <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all">
+
+      <div className="flex items-center justify-between">
+
+        <div>
+          <p className="text-xs font-bold uppercase text-slate-400">
+            {label}
+          </p>
+          <p className="text-2xl font-black text-slate-900 mt-1">
+            {value}
+          </p>
+        </div>
+
+        {Icon && (
+          <div className={`p-3 rounded-xl ${colors[color]}`}>
+            <Icon size={20} />
+          </div>
+        )}
+
+      </div>
+
+      <div className="mt-4 h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+        <div className="h-full w-1/2 bg-blue-500 rounded-full" />
+      </div>
+
+    </div>
+  );
+};
