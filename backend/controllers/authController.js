@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
 
 // ================= LOGIN =================
 export const login = async (req, res) => {
@@ -12,14 +13,13 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      console.log("User not found");
       return res.status(404).json({ message: "User not found" });
     }
 
-    const isMatch = await user.matchPassword(password);
+    // ✅ FIX: correct password comparison
+    const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      console.log("Invalid password");
       return res.status(401).json({ message: "Invalid password" });
     }
 
@@ -31,8 +31,6 @@ export const login = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
-
-    console.log("Login successful:", user.email);
 
     res.json({
       token,
@@ -46,23 +44,18 @@ export const login = async (req, res) => {
         ward: user.ward,
       },
     });
-  } catch (err) {
-    console.error("LOGIN ERROR:");
-    console.error(err);
-    console.error(err.stack);
 
-    res.status(500).json({
-      message: err.message,
-    });
+  } catch (err) {
+    console.error("LOGIN ERROR:", err);
+    res.status(500).json({ message: err.message });
   }
 };
 
 // ================= REGISTER =================
 export const register = async (req, res) => {
-  console.log("========== REGISTER HIT ==========");
-  console.log("Request Body:", req.body);
-
   try {
+    console.log("REGISTER HIT:", req.body);
+
     const {
       name,
       email,
@@ -73,39 +66,42 @@ export const register = async (req, res) => {
       ward,
     } = req.body;
 
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "All fields required" });
+    }
+
     const exists = await User.findOne({ email });
 
     if (exists) {
-      console.log("User already exists");
-      return res.status(400).json({
-        message: "User already exists",
-      });
+      return res.status(400).json({ message: "User already exists" });
     }
+
+    // ✅ FIX: hash password properly
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
       name,
       email,
-      password,
+      password: hashedPassword,
       role: role ? role.toUpperCase() : "STUDENT",
       county,
       constituency,
       ward,
     });
 
-    console.log("User created successfully:", user.email);
-
     res.status(201).json({
       success: true,
-      user,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
-  } catch (err) {
-    console.error("========== REGISTER ERROR ==========");
-    console.error(err);
-    console.error(err.stack);
 
-    res.status(500).json({
-      message: err.message,
-    });
+  } catch (err) {
+    console.error("REGISTER ERROR:", err);
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -117,9 +113,7 @@ export const forgotPassword = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-      });
+      return res.status(404).json({ message: "User not found" });
     }
 
     const resetToken = crypto.randomBytes(20).toString("hex");
@@ -131,14 +125,13 @@ export const forgotPassword = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Reset link sent",
+      message: "Reset link generated",
+      resetToken,
     });
+
   } catch (err) {
     console.error(err);
-
-    res.status(500).json({
-      message: err.message,
-    });
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -150,18 +143,14 @@ export const resetPassword = async (req, res) => {
 
     const user = await User.findOne({
       resetPasswordToken: token,
-      resetPasswordExpire: {
-        $gt: Date.now(),
-      },
+      resetPasswordExpire: { $gt: Date.now() },
     });
 
     if (!user) {
-      return res.status(400).json({
-        message: "Invalid token",
-      });
+      return res.status(400).json({ message: "Invalid or expired token" });
     }
 
-    user.password = password;
+    user.password = await bcrypt.hash(password, 10);
     user.resetPasswordToken = null;
     user.resetPasswordExpire = null;
 
@@ -171,11 +160,9 @@ export const resetPassword = async (req, res) => {
       success: true,
       message: "Password reset successful",
     });
+
   } catch (err) {
     console.error(err);
-
-    res.status(500).json({
-      message: err.message,
-    });
+    res.status(500).json({ message: err.message });
   }
 };
