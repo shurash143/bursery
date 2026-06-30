@@ -14,6 +14,7 @@ import API from "../api/axiosConfig";
 import LeadersManager from "./LeadersManager";
 import DisbursementsManager from "./DisbursementsManager";
 import ContactsManager from "./ContactsManager";
+import BursaryManager from "./BursaryManager";
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
@@ -23,21 +24,24 @@ export default function AdminDashboardPage() {
   const [disbursements, setDisbursements] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [bursaries, setBursaries] = useState([]);
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
 
-      const [appRes, leaderRes, contactRes] = await Promise.all([
-        API.get("/applications/all"),
-        API.get("/admin/leader"),
-        API.get("/contacts")
-      ]);
+     const [appRes, leaderRes, contactRes, bursaryRes] = await Promise.all([
+  API.get("/applications/all"),
+  API.get("/admin/leader"),
+  API.get("/contacts"),
+  API.get("/bursaries"),
+]);
 
-      setDisbursements(appRes.data || []);
-      setLeaders(leaderRes.data || []);
-      setContacts(contactRes.data || []);
-    } catch (err) {
+setDisbursements(appRes.data || []);
+setLeaders(leaderRes.data || []);
+setContacts(contactRes.data || []);
+setBursaries(bursaryRes.data || []);
+}  catch (err) {
       console.error("Admin Sync Error:", err);
     } finally {
       setLoading(false);
@@ -83,6 +87,12 @@ export default function AdminDashboardPage() {
           <NavBtn label="Leaders" icon={<Users size={18} />} active={activeTab === "leaders"} onClick={() => setActiveTab("leaders")} />
           <NavBtn label="Disbursements" icon={<BadgeDollarSign size={18} />} active={activeTab === "disbursements"} onClick={() => setActiveTab("disbursements")} />
           <NavBtn label="Inquiries" icon={<MessageSquare size={18} />} active={activeTab === "contacts"} onClick={() => setActiveTab("contacts")} count={stats.inquiryCount} />
+          <NavBtn
+  label="Bursaries"
+  icon={<BadgeDollarSign size={18} />}
+  active={activeTab === "bursaries"}
+  onClick={() => setActiveTab("bursaries")}
+/>
         </nav>
 
         <div className="p-8">

@@ -9,6 +9,7 @@ import LeaderRoutes from "./routes/LeaderRoutes.js"; // ✅ add this
 import ContactsRouter from "./routes/ContactsRouter.js";
 import documentRoutes from "./routes/documentRoutes.js";
 import reportRoutes from  "./routes/reportRoutes.js"
+import bursaryRoutes from "./routes/bursaryRoutes.js";
 
 
 dotenv.config();
@@ -26,6 +27,7 @@ app.use("/api/leader", LeaderRoutes); // ✅ add this
 app.use("/api/contacts", ContactsRouter);
 app.use("/api/documents", documentRoutes);
 app.use("/api/reports", reportRoutes)
+app.use("/api/bursaries", bursaryRoutes);
 
 app.get("/", (req, res) => res.send("Bursary API running"));
 

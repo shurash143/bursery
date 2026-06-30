@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Eye,
   EyeOff,
@@ -45,7 +45,7 @@ export default function Login() {
         return;
       }
 
-      // 🔥 FINAL FIX: normalize EVERYTHING
+      // Normalize role
       const role = (user.role || "")
         .toString()
         .trim()
@@ -58,24 +58,20 @@ export default function Login() {
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("role", role);
 
-      // 🔥 ROUTING (CLEAN + SAFE)
+      // Redirect by role
       if (role === "student") {
         navigate("/student", { replace: true });
-      } 
-      else if (role === "admin") {
+      } else if (role === "admin") {
         navigate("/admin", { replace: true });
-      } 
-      else if (
+      } else if (
         role === "mp" ||
         role === "mca" ||
         role === "women_rep"
       ) {
         navigate("/leader-dashboard", { replace: true });
-      } 
-      else {
+      } else {
         setError("Unknown role: " + role);
       }
-
     } catch (err) {
       console.log("LOGIN ERROR:", err.response?.data || err.message);
       setError(err.response?.data?.message || "Invalid email or password");
@@ -86,53 +82,66 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+        {/* Back to Home */}
+        <div className="mb-4">
+          <Link
+            to="/"
+            className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+          >
+            ← Back to Home
+          </Link>
+        </div>
 
         {/* HEADER */}
         <div className="text-center mb-6">
           <div className="bg-blue-600 w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3">
             <ShieldCheck className="text-white" />
           </div>
+
           <h2 className="text-2xl font-bold">Welcome Back</h2>
+          <p className="text-gray-500 mt-2">
+            Sign in to your Online Bursary System account
+          </p>
         </div>
 
-        {/* SUCCESS */}
+        {/* SUCCESS MESSAGE */}
         {successMsg && (
           <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
             {successMsg}
           </div>
         )}
 
-        {/* ERROR */}
+        {/* ERROR MESSAGE */}
         {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded flex gap-2 items-center">
-            <AlertCircle size={16} />
-            {error}
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded flex items-center gap-2">
+            <AlertCircle size={18} />
+            <span>{error}</span>
           </div>
         )}
 
-        {/* FORM */}
+        {/* LOGIN FORM */}
         <form onSubmit={handleSubmit} className="space-y-4">
-
+          {/* Email */}
           <input
             type="email"
             name="email"
-            placeholder="Email"
+            placeholder="Enter your email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full p-3 border rounded"
+            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
 
+          {/* Password */}
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
               name="password"
-              placeholder="Password"
+              placeholder="Enter your password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full p-3 border rounded"
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
 
@@ -141,28 +150,39 @@ export default function Login() {
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-3 text-gray-500"
             >
-              {showPassword ? <EyeOff /> : <Eye />}
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
 
+          {/* Login Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white p-3 rounded flex justify-center items-center gap-2"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg flex justify-center items-center gap-2 transition"
           >
             {loading ? "Logging in..." : "Login"}
             {!loading && <ArrowRight size={18} />}
           </button>
         </form>
 
-        {/* FORGOT PASSWORD */}
+        {/* Forgot Password */}
         <p
           onClick={() => navigate("/forgot-password")}
-          className="text-blue-600 text-sm mt-4 text-center cursor-pointer"
+          className="text-blue-600 text-sm mt-4 text-center cursor-pointer hover:underline"
         >
           Forgot Password?
         </p>
 
+        {/* Register Link */}
+        <p className="text-center mt-6 text-gray-600">
+          Don't have an account?{" "}
+          <Link
+            to="/register"
+            className="text-blue-600 font-semibold hover:underline"
+          >
+            Register
+          </Link>
+        </p>
       </div>
     </div>
   );
