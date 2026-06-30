@@ -30,18 +30,18 @@ export default function AdminDashboardPage() {
     try {
       setLoading(true);
 
-     const [appRes, leaderRes, contactRes, bursaryRes] = await Promise.all([
-  API.get("/applications/all"),
-  API.get("/admin/leader"),
-  API.get("/contacts"),
-  API.get("/bursaries"),
-]);
+      const [appRes, leaderRes, contactRes , bursaryRes] = await Promise.all([
+        API.get("/applications/all"),
+        API.get("/admin/leader"),
+        API.get("/contacts"),
+         API.get("/bursaries")
+      ]);
 
-setDisbursements(appRes.data || []);
-setLeaders(leaderRes.data || []);
-setContacts(contactRes.data || []);
-setBursaries(bursaryRes.data || []);
-}  catch (err) {
+      setDisbursements(appRes.data || []);
+      setLeaders(leaderRes.data || []);
+      setContacts(contactRes.data || []);
+      setBursaries(bursaryRes.data || []);
+    } catch (err) {
       console.error("Admin Sync Error:", err);
     } finally {
       setLoading(false);
@@ -122,6 +122,9 @@ setBursaries(bursaryRes.data || []);
               {activeTab === "leaders" && <LeadersManager leaders={leaders} refreshData={fetchData} />}
               {activeTab === "disbursements" && <DisbursementsManager data={disbursements} refreshData={fetchData} />}
               {activeTab === "contacts" && <ContactsManager messages={contacts} refreshData={fetchData} />}
+              {activeTab === "bursaries" && (
+  <BursaryManager bursaries={bursaries} refreshData={fetchData} />
+)}
             </>
           )}
 
