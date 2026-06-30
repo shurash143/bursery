@@ -211,19 +211,13 @@ export default function BursaryForm({
               Cancel
             </button>
 
-            <button
-              disabled={loading}
-              className="bg-blue-600 text-white px-6 py-3 rounded-xl"
-            >
-
-              {loading
-                ? "Saving..."
-                : bursary
-                ? "Update Bursary"
-                : "Create Bursary"}
-
-            </button>
-
+      <button
+  type="submit"
+  disabled={loading}
+  className="bg-blue-600 text-white px-6 py-3 rounded-xl"
+>
+  {loading ? "Saving..." : bursary ? "Update Bursary" : "Create Bursary"}
+</button>
           </div>
 
         </form>

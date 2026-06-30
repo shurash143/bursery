@@ -73,6 +73,29 @@ export default function BursaryManager() {
       alert("Unable to update status");
     }
   };
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const payload = {
+      title,
+      description,
+      amount,
+      deadline,
+      eligibility,
+      status
+    };
+
+    const res = await API.post("/bursaries", payload);
+
+    console.log("Saved:", res.data);
+
+    refreshData(); // reload list
+    setShowForm(false); // close form (if modal)
+  } catch (err) {
+    console.error("Bursary POST error:", err);
+  }
+};
 
   return (
     <div className="p-8">
