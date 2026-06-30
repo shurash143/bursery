@@ -6,8 +6,6 @@ import bcrypt from "bcryptjs";
 // ================= LOGIN =================
 export const login = async (req, res) => {
   try {
-    console.log("LOGIN REQUEST:", req.body);
-
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
@@ -16,8 +14,8 @@ export const login = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // ✅ FIX: correct password comparison
-    const isMatch = await bcrypt.compare(password, user.password);
+    // use schema method (cleaner)
+    const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid password" });
@@ -44,7 +42,6 @@ export const login = async (req, res) => {
         ward: user.ward,
       },
     });
-
   } catch (err) {
     console.error("LOGIN ERROR:", err);
     res.status(500).json({ message: err.message });
@@ -54,17 +51,8 @@ export const login = async (req, res) => {
 // ================= REGISTER =================
 export const register = async (req, res) => {
   try {
-    console.log("REGISTER HIT:", req.body);
-
-    const {
-      name,
-      email,
-      password,
-      role,
-      county,
-      constituency,
-      ward,
-    } = req.body;
+    const { name, email, password, role, county, constituency, ward } =
+      req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields required" });
@@ -76,13 +64,10 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // ✅ FIX: hash password properly
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const user = await User.create({
       name,
       email,
-      password: hashedPassword,
+      password, // ✅ IMPORTANT: no hashing here
       role: role ? role.toUpperCase() : "STUDENT",
       county,
       constituency,
@@ -98,7 +83,6 @@ export const register = async (req, res) => {
         role: user.role,
       },
     });
-
   } catch (err) {
     console.error("REGISTER ERROR:", err);
     res.status(500).json({ message: err.message });
@@ -128,9 +112,8 @@ export const forgotPassword = async (req, res) => {
       message: "Reset link generated",
       resetToken,
     });
-
   } catch (err) {
-    console.error(err);
+    console.error("FORGOT PASSWORD ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -150,7 +133,7 @@ export const resetPassword = async (req, res) => {
       return res.status(400).json({ message: "Invalid or expired token" });
     }
 
-    user.password = await bcrypt.hash(password, 10);
+    user.password = password; // ✅ schema will hash it automatically
     user.resetPasswordToken = null;
     user.resetPasswordExpire = null;
 
@@ -160,9 +143,8 @@ export const resetPassword = async (req, res) => {
       success: true,
       message: "Password reset successful",
     });
-
   } catch (err) {
-    console.error(err);
+    console.error("RESET PASSWORD ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 };
