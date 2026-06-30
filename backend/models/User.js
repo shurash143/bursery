@@ -6,32 +6,38 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+
     role: {
       type: String,
       enum: ["STUDENT", "MP", "MCA", "WOMEN_REP", "ADMIN"],
       default: "STUDENT",
     },
-    // Geography fields for Leaders
+
+    // Geography fields for leaders
     county: { type: String },
     constituency: { type: String },
     ward: { type: String },
 
-    // Password Reset fields
+    // Password reset
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpire: { type: Date, default: null },
   },
   { timestamps: true }
 );
 
-// Hash password before saving
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+//
+// 🔥 FIXED: Password hashing (NO next() — prevents your error)
+//
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
-// Compare password method
+//
+// 🔐 Compare password method
+//
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
